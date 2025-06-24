@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="Darija Explorer: Learn Moroccan Arabic" data-ar="مُستكشِف الدارجة: تعلّم العربية المغربية">Darija Explorer: Learn Moroccan Arabic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #6a0dad;
+            --secondary-purple: #8a2be2;
+            --light-purple: #f5e6ff;
+            --dark-purple: #4b0082;
+            --accent-pink: #da70d6;
+            --background-gradient-start: #f8f0ff;
+            --background-gradient-end: #e8d0f5;
+            --card-shadow-light: rgba(176, 141, 255, 0.4);
+            --card-shadow-dark: rgba(176, 141, 255, 0.7);
+            --text-shadow-light: rgba(0,0,0,0.1);
+            --text-shadow-dark: rgba(0,0,0,0.2);
+            --border-color-light: #edd5ff;
+            --input-border: #b39cd0;
+            --input-focus-shadow: rgba(138, 43, 226, 0.4);
+            --correct-color: #4CAF50;
+            --incorrect-color: #FF4500;
+        }
+
+        /* Base styles for HTML and Body for full height and no overflow */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevents body scrollbars from main content */
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--background-gradient-start) 0%, var(--background-gradient-end) 100%);
+            color: var(--dark-purple);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body.darija-ar {
+            font-family: 'Cairo', sans-serif; /* Apply Arabic font when in Darija Arabic mode */
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100%;
+            max-width: 1000px; /* Constrain horizontal width for desktop */
+            background: linear-gradient(180deg, #fefeff 0%, var(--light-purple) 100%);
+            padding: 40px;
+            border-radius: 35px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+            text-align: center;
+            box-sizing: border-box;
+            animation: fadeIn 1.2s ease-out forwards;
+            position: relative; /* Crucial for absolute positioning of pages */
+            overflow: hidden; /* Clips page transitions and content that tries to escape */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to the top of the container */
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-70px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-purple);
+            margin-bottom: 30px;
+            font-size: 3.2em;
+            text-shadow: 1px 1px 6px var(--text-shadow-dark);
+            line-height: 1.2;
+            width: 100%; /* Ensure heading takes full width for text alignment */
+        }
+        body.darija-ar h1, body.darija-ar h2 {
+            font-family: 'Cairo', sans-serif; /* Ensure Arabic font for headings too */
+        }
+
+        /* Page content styling for transitions and internal layout */
+        .page-content {
+            position: absolute; /* Pages overlap inside app-container */
+            top: 0;
+            left: 0;
+            width: 100%; /* Take full width of app-container */
+            height: 100%; /* Take full height of app-container */
+            padding: 40px; /* Padding for content within each page */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Default: content starts from top */
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            pointer-events: none; /* Disable interaction when not active */
+            visibility: hidden; /* Hide entirely when not active */
+            overflow-y: auto; /* Enable vertical scrolling for page content if it overflows */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        .page-content.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto; /* Enable interaction when active */
+            visibility: visible; /* Show when active */
+        }
+
+        /* Shared card/button styles */
+        .primary-card, .category-card, .action-button {
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-shrink: 0; /* Prevent shrinking in flex containers */
+        }
+
+        .primary-card:hover, .category-card:hover, .action-button:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 45px var(--card-shadow-dark);
+        }
+
+        .primary-card:active, .category-card:active, .action-button:active {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--card-shadow-light);
+        }
+
+        /* Main Home Page Specifics */
+        .main-home-page {
+            justify-content: center; /* Keep main home content centered vertically */
+            gap: 40px;
+        }
+
+        .main-category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 0;
+            width: 100%;
+            max-width: 600px; /* Keep consistent width for main cards */
+            margin-top: 20px; /* Space from title */
+            margin-bottom: 20px; /* Space at bottom */
+        }
+
+        .primary-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f9f0ff 100%);
+            color: var(--primary-purple);
+            padding: 30px 25px;
+            border-radius: 25px;
+            font-size: 1.6em;
+            font-weight: 700;
+            box-shadow: 0 10px 25px var(--card-shadow-light);
+            min-height: 180px; /* Consistent card size */
+        }
+
+        .primary-card span {
+            font-size: 0.6em;
+            font-weight: 400;
+            color: var(--dark-purple);
+            margin-top: 10px;
+        }
+
+        .primary-card i {
+            font-size: 3.5em;
+            color: var(--secondary-purple);
+            margin-bottom: 12px;
+        }
+
+        /* Category Pages Specifics */
+        .learn-categories-page, .practice-categories-page {
+            justify-content: flex-start; /* Changed to flex-start to allow categories to flow from top */
+            gap: 30px;
+            padding-top: 80px; /* Added padding to make space for back/language buttons */
+        }
+
+        .learn-definitions-page {
+            gap: 20px;
+            text-align: left;
+            border-radius: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+            padding: 25px;
+            justify-content: flex-start;
+            padding-top: 80px; /* Added padding to make space for back/language buttons */
+        }
+
+        .learn-definitions-page h1 {
+            font-size: 2.5em;
+            margin-bottom: 25px;
+            color: var(--primary-purple);
+            text-align: center;
+            width: 100%;
+        }
+
+        .learn-word-list {
+            display: grid;
+            /* Flexibile columns, min width 220px, then take equal space */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 700px; /* Constrain width for better readability on large screens */
+        }
+
+        .learn-word-item {
+            background-color: #f9f0ff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-color-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+            box-sizing: border-box;
+        }
+        .learn-word-item .english-word {
+            font-weight: 600;
+            color: var(--dark-purple);
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .learn-word-item .darija-word {
+            font-style: italic;
+            color: var(--secondary-purple);
+            white-space: nowrap; /* Prevent Darija word from wrapping if possible */
+        }
+        body.darija-ar .learn-word-item {
+            flex-direction: row-reverse; /* Flip order for RTL */
+            text-align: right;
+        }
+        body.darija-ar .learn-word-item .english-word {
+            margin-left: 10px;
+            margin-right: 0;
+        }
+
+        /* Arabic Alphabet specific styles */
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Smaller grid items for letters */
+            gap: 10px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            direction: rtl; /* Ensure RTL for Arabic letters */
+        }
+
+        .alphabet-letter {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-family: 'Cairo', sans-serif; /* Arabic font for the letters */
+            font-size: 2.5em;
+            color: var(--primary-purple);
+            font-weight: 700;
+            line-height: 1.2;
+            min-height: 100px;
+        }
+
+        .alphabet-letter:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px var(--card-shadow-dark);
+        }
+
+        .alphabet-letter:active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px var(--card-shadow-light);
+        }
+
+        .alphabet-letter .transcription {
+            font-family: 'Inter', sans-serif; /* Latin font for transcription */
+            font-size: 0.5em; /* Smaller relative to the letter */
+            color: var(--dark-purple);
+            margin-top: 5px;
+            font-weight: 400;
+            direction: ltr; /* Ensure LTR for transcription */
+        }
+        body.darija-ar .alphabet-letter .transcription {
+            direction: ltr; /* Always LTR for transcription */
+        }
+
+
+        /* Common Category Grid for Learn and Practice */
+        .category-grid {
+            display: grid;
+            /* Default: auto-fit columns with min 150px, then fill space */
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 0;
+            width: 100%;
+            max-width: 800px; /* Control max width of the grid itself */
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .category-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f9f0ff 100%);
+            color: var(--primary-purple);
+            padding: 20px 15px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 8px 20px var(--card-shadow-light);
+            min-height: 120px; /* Ensures consistent card size even with varied content */
+            box-sizing: border-box;
+        }
+
+        .category-card i {
+            font-size: 2.8em;
+            color: var(--secondary-purple);
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+        }
+        .category-card .emoji-icon {
+            font-size: 3em;
+            line-height: 1;
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .category-card:hover i, .category-card:hover .emoji-icon {
+            transform: scale(1.08);
+        }
+
+        /* Game Page Specifics */
+        .game-page {
+            justify-content: flex-start; /* Align content to the top within game page */
+            gap: 25px;
+            padding-top: 80px; /* Added padding to make space for back/language buttons */
+        }
+
+        .score-display {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #7b68ee;
+            margin-top: 10px;
+            background-color: #f0e6ff;
+            padding: 15px;
+            border-radius: 18px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.12);
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+
+        .question-display {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #331a33;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #ffffff 0%, var(--light-purple) 100%);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.2);
+            word-break: break-word; /* Allows long words to break */
+            white-space: normal;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            width: 100%;
+            box-sizing: border-box;
+            max-width: 700px;
+        }
+        body.darija-ar .question-display {
+            font-family: 'Cairo', sans-serif;
+            font-size: 3em; /* Slightly smaller for Arabic */
+        }
+
+        .answer-input {
+            width: calc(100% - 40px); /* Account for horizontal padding */
+            padding: 18px 25px;
+            margin-bottom: 25px;
+            background-color: #ffffff;
+            color: #331a33;
+            border: 2px solid var(--input-border);
+            border-radius: 20px;
+            font-size: 1.4em;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+            box-sizing: border-box;
+            max-width: 500px;
+        }
+        body.darija-ar .answer-input {
+            font-family: 'Cairo', sans-serif;
+            text-align: right;
+        }
+
+        .answer-input::placeholder {
+            color: #8c78a0;
+        }
+
+        .answer-input:focus {
+            border-color: var(--secondary-purple);
+            box-shadow: 0 0 0 7px var(--input-focus-shadow);
+            background-color: #fdfbff;
+        }
+
+        .action-button {
+            background: linear-gradient(180deg, var(--accent-pink) 0%, #b258ae 100%);
+            color: white;
+            padding: 18px 35px;
+            border-radius: 20px;
+            font-size: 1.5em;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(218, 112, 214, 0.6);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        .feedback-message {
+            margin-top: 20px;
+            font-size: 1.4em;
+            font-weight: 700;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-word;
+            width: 100%;
+            text-align: center;
+        }
+
+        .feedback-message.correct {
+            color: var(--correct-color);
+        }
+
+        .feedback-message.incorrect {
+            color: var(--incorrect-color);
+        }
+
+        /* Back button positioning and styling */
+        .back-button {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: none;
+            border: none;
+            color: var(--secondary-purple);
+            font-size: 2em;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+            padding: 10px;
+            border-radius: 15px;
+            z-index: 100; /* Ensure it's above page content */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+        }
+
+        .back-button.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+        body.darija-ar .back-button {
+            left: unset;
+            right: 25px;
+            transform: translateX(10px) rotate(180deg); /* Flip arrow for RTL */
+        }
+        body.darija-ar .back-button.active {
+            transform: translateX(0) rotate(180deg);
+        }
+
+        .back-button:hover {
+            color: var(--primary-purple);
+            transform: scale(1.15);
+        }
+        body.darija-ar .back-button:hover {
+            transform: scale(1.15) rotate(180deg);
+        }
+
+        /* Language Toggle Button */
+        .language-toggle {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--secondary-purple);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 10px 15px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            z-index: 100; /* Ensure it's above page content */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        body.darija-ar .language-toggle {
+            right: unset;
+            left: 25px;
+        }
+
+        .language-toggle:hover {
+            background: var(--primary-purple);
+            transform: translateY(-2px);
+        }
+        .language-toggle:active {
+            transform: translateY(0);
+        }
+
+
+        /* --- Media Queries for Responsiveness --- */
+
+        /* Tablet Portrait and smaller desktops */
+        @media (max-width: 900px) {
+            .app-container {
+                padding: 30px;
+                border-radius: 30px;
+            }
+            .page-content {
+                padding: 30px;
+                padding-top: 70px; /* Adjust for smaller back/language buttons */
+            }
+            h1 {
+                font-size: 2.8em;
+                margin-bottom: 25px;
+            }
+            .primary-card {
+                font-size: 1.4em;
+                padding: 25px 20px;
+                min-height: 160px;
+            }
+            .primary-card i {
+                font-size: 3em;
+            }
+            .learn-definitions-page h1 {
+                 font-size: 2.2em;
+            }
+            .learn-word-list {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            .alphabet-grid {
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+                gap: 8px;
+            }
+            .alphabet-letter {
+                font-size: 2.2em;
+                min-height: 90px;
+            }
+            .alphabet-letter .transcription {
+                font-size: 0.45em;
+            }
+            .category-grid {
+                 grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Adjusted min-width for categories */
+                 gap: 18px;
+            }
+            .category-card {
+                padding: 18px 12px;
+                min-height: 110px;
+            }
+            .question-display {
+                font-size: 3em;
+                padding: 25px;
+            }
+            body.darija-ar .question-display {
+                font-size: 2.5em; /* Adjust for smaller screens */
+            }
+            .back-button {
+                font-size: 1.8em;
+                top: 20px;
+                left: 20px;
+                padding: 8px;
+            }
+            body.darija-ar .back-button {
+                left: unset;
+                right: 20px;
+            }
+            .language-toggle {
+                padding: 8px 12px;
+                font-size: 0.9em;
+                top: 20px;
+                right: 20px;
+            }
+            body.darija-ar .language-toggle {
+                left: 20px;
+            }
+        }
+
+        /* Landscape Mobile and smaller tablets */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 25px;
+                border-radius: 25px;
+            }
+            .page-content {
+                padding: 25px;
+                padding-top: 60px; /* Adjust for even smaller back/language buttons */
+            }
+            h1 {
+                font-size: 2.4em;
+                margin-bottom: 20px;
+            }
+            .main-category-grid {
+                grid-template-columns: 1fr; /* Stack main cards vertically on smaller devices */
+                max-width: 350px; /* Keep consistent width */
+                gap: 20px;
+            }
+            .primary-card {
+                font-size: 1.3em;
+                padding: 25px 20px;
+                min-height: 150px;
+            }
+            .primary-card i {
+                font-size: 2.8em;
+            }
+            .learn-definitions-page h1 {
+                 font-size: 2em;
+                 margin-bottom: 20px;
+            }
+            .learn-word-list {
+                grid-template-columns: 1fr; /* Stack word items vertically */
+                gap: 10px;
+            }
+            .learn-word-item {
+                padding: 12px 15px;
+                font-size: 0.95em;
+            }
+            .alphabet-grid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 6px;
+            }
+            .alphabet-letter {
+                font-size: 2em;
+                min-height: 80px;
+            }
+            .alphabet-letter .transcription {
+                font-size: 0.4em;
+            }
+            .category-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Further adjust min-width */
+                gap: 15px;
+            }
+            .category-card {
+                font-size: 1.1em;
+                padding: 18px 10px;
+                border-radius: 15px;
+                min-height: 100px;
+            }
+            .category-card i, .category-card .emoji-icon {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+            }
+            .question-display {
+                font-size: 2.5em;
+                padding: 20px;
+                min-height: 80px;
+                margin-bottom: 20px;
+            }
+            body.darija-ar .question-display {
+                font-size: 2.2em;
+            }
+            .answer-input {
+                font-size: 1.1em;
+                padding: 15px 20px;
+                border-radius: 15px;
+                margin-bottom: 15px;
+            }
+            .action-button {
+                font-size: 1.2em;
+                padding: 15px 25px;
+                border-radius: 15px;
+            }
+            .feedback-message {
+                font-size: 1.1em;
+                min-height: 35px;
+                margin-top: 15px;
+            }
+            .back-button {
+                font-size: 1.5em;
+                top: 18px;
+                left: 18px;
+                padding: 5px;
+            }
+            body.darija-ar .back-button {
+                left: unset;
+                right: 18px;
+            }
+            .language-toggle {
+                padding: 8px 12px;
+                font-size: 0.9em;
+                top: 15px;
+                right: 15px;
+            }
+            body.darija-ar .language-toggle {
+                left: 15px;
+            }
+        }
+
+        /* Portrait Mobile */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 15px; /* Reduced overall padding for tight fit */
+                border-radius: 15px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            }
+            .page-content {
+                padding: 15px; /* Reduced page content padding */
+                padding-top: 50px; /* More space for buttons */
+            }
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 10px;
+            }
+            .main-category-grid {
+                max-width: 280px; /* Slightly narrower on smallest screens */
+            }
+            .primary-card {
+                font-size: 1.1em;
+                padding: 18px 12px;
+                min-height: 120px;
+            }
+            .primary-card i {
+                font-size: 2.2em;
+            }
+            .learn-definitions-page h1 {
+                 font-size: 1.6em;
+                 margin-bottom: 10px;
+            }
+            .learn-word-list {
+                grid-template-columns: 1fr; /* Ensures single column for readability */
+                gap: 8px;
+            }
+            .learn-word-item {
+                font-size: 0.85em;
+                padding: 8px 10px;
+            }
+            .alphabet-grid {
+                grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+                gap: 5px;
+            }
+            .alphabet-letter {
+                font-size: 1.8em;
+                min-height: 70px;
+            }
+            .alphabet-letter .transcription {
+                font-size: 0.35em;
+            }
+            .category-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Allow two smaller columns if possible */
+                gap: 10px;
+            }
+            .category-card {
+                font-size: 0.95em;
+                padding: 15px 8px;
+                min-height: 90px;
+            }
+            .category-card i, .category-card .emoji-icon {
+                font-size: 2em;
+                margin-bottom: 6px;
+            }
+            .question-display {
+                font-size: 1.8em;
+                padding: 12px;
+                min-height: 60px;
+                margin-bottom: 12px;
+            }
+            body.darija-ar .question-display {
+                font-size: 1.6em;
+            }
+            .answer-input {
+                font-size: 0.95em;
+                padding: 10px 12px;
+            }
+            .action-button {
+                font-size: 1em;
+                padding: 10px 18px;
+            }
+            .feedback-message {
+                font-size: 0.9em;
+                min-height: 25px;
+                margin-top: 10px;
+            }
+            .back-button {
+                font-size: 1.3em;
+                top: 10px;
+                left: 10px;
+                padding: 5px;
+            }
+            body.darija-ar .back-button {
+                left: unset;
+                right: 10px;
+            }
+            .language-toggle {
+                top: 10px;
+                right: 10px;
+                font-size: 0.75em;
+                padding: 6px 10px;
+            }
+            body.darija-ar .language-toggle {
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <button id="backButton" class="back-button" aria-label="Go back">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+
+        <button id="languageToggle" class="language-toggle" data-en="العربية" data-ar="English">العربية</button>
+        <div id="mainHomePage" class="page-content main-home-page">
+            <h1 data-en="Darija Explorer" data-ar="مُستكشِف الدارجة">Darija Explorer</h1>
+            <div class="main-category-grid">
+                <button class="primary-card" data-target-page="learnCategoriesPage" data-en="Learn" data-ar="تعلّم">
+                    <i class="fas fa-book-open"></i> <span data-en="Learn" data-ar="تعلّم">Learn</span>
+                    <span data-en="Explore words & definitions" data-ar="استكشف الكلمات والتعاريف">Explore words & definitions</span>
+                </button>
+                <button class="primary-card" data-target-page="practiceCategoriesPage" data-en="Practice" data-ar="تدرّب">
+                    <i class="fas fa-gamepad"></i> <span data-en="Practice" data-ar="تدرّب">Practice</span>
+                    <span data-en="Play interactive games" data-ar="لعب ألعاب تفاعلية">Play interactive games</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="learnCategoriesPage" class="page-content learn-categories-page">
+            <h1 data-en="Learn Darija Words" data-ar="تعلّم كلمات الدارجة">Learn Darija Words</h1>
+            <div class="category-grid">
+                <button class="category-card" data-category-key="alphabet" data-en-text="Alphabet" data-ar-text="الأبجدية">
+                    <i class="fas fa-spell-check"></i> <span data-en="Alphabet" data-ar="الأبجدية">Alphabet</span>
+                </button>
+                <button class="category-card" data-category-key="numbers" data-en-text="Numbers" data-ar-text="الأرقام">
+                    <i class="fas fa-calculator"></i> <span data-en="Numbers" data-ar="الأرقام">Numbers</span>
+                </button>
+                <button class="category-card" data-category-key="days" data-en-text="Days of the Week" data-ar-text="أيام الأسبوع">
+                    <i class="fas fa-calendar-alt"></i> <span data-en="Days of the Week" data-ar="أيام الأسبوع">Days of the Week</span>
+                </button>
+                <button class="category-card" data-category-key="months" data-en-text="Months" data-ar-text="الشهور">
+                    <i class="fas fa-calendar-check"></i> <span data-en="Months" data-ar="الشهور">Months</span>
+                </button>
+                <button class="category-card" data-category-key="colors" data-en-text="Colors" data-ar-text="الألوان">
+                    <i class="fas fa-palette"></i> <span data-en="Colors" data-ar="الألوان">Colors</span>
+                </button>
+                <button class="category-card" data-category-key="animals" data-en-text="Animals" data-ar-text="الحيوانات">
+                    <i class="fas fa-paw"></i> <span data-en="Animals" data-ar="الحيوانات">Animals</span>
+                </button>
+                <button class="category-card" data-category-key="food" data-en-text="Food" data-ar-text="الطعام">
+                    <i class="fas fa-utensils"></i> <span data-en="Food" data-ar="الطعام">Food</span>
+                </button>
+                <button class="category-card" data-category-key="greetings" data-en-text="Greetings" data-ar-text="التحيات">
+                    <i class="fas fa-handshake"></i> <span data-en="Greetings" data-ar="التحيات">Greetings</span>
+                </button>
+                <button class="category-card" data-category-key="family" data-en-text="Family" data-ar-text="العائلة">
+                    <i class="fas fa-users"></i> <span data-en="Family" data-ar="العائلة">Family</span>
+                </button>
+                <button class="category-card" data-category-key="bodyParts" data-en-text="Body Parts" data-ar-text="أجزاء الجسم">
+                    <i class="fas fa-child"></i> <span data-en="Body Parts" data-ar="أجزاء الجسم">Body Parts</span>
+                </button>
+                <button class="category-card" data-category-key="clothes" data-en-text="Clothes" data-ar-text="الملابس">
+                    <i class="fas fa-tshirt"></i> <span data-en="Clothes" data-ar="الملابس">Clothes</span>
+                </button>
+                <button class="category-card" data-category-key="transportation" data-en-text="Transportation" data-ar-text="وسائل النقل">
+                    <i class="fas fa-bus"></i> <span data-en="Transportation" data-ar="وسائل النقل">Transportation</span>
+                </button>
+                <button class="category-card" data-category-key="occupations" data-en-text="Occupations" data-ar-text="المهن">
+                    <i class="fas fa-briefcase"></i> <span data-en="Occupations" data-ar="المهن">Occupations</span>
+                </button>
+                <button class="category-card" data-category-key="places" data-en-text="Places" data-ar-text="الأماكن">
+                    <i class="fas fa-map-marker-alt"></i> <span data-en="Places" data-ar="الأماكن">Places</span>
+                </button>
+                <button class="category-card" data-category-key="weather" data-en-text="Weather" data-ar-text="الطقس">
+                    <i class="fas fa-cloud-sun"></i> <span data-en="Weather" data-ar="الطقس">Weather</span>
+                </button>
+                <button class="category-card" data-category-key="time" data-en-text="Time" data-ar-text="الوقت">
+                    <i class="fas fa-clock"></i> <span data-en="Time" data-ar="الوقت">Time</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="learnDefinitionsPage" class="page-content learn-definitions-page">
+            </div>
+
+        <div id="practiceCategoriesPage" class="page-content practice-categories-page">
+            <h1 data-en="Practice Your Darija!" data-ar="تدرّب على الدارجة!">Practice Your Darija!</h1>
+            <div class="category-grid">
+                <button class="category-card" data-game="alphabet" data-en-text="Alphabet" data-ar-text="الأبجدية">
+                    <i class="fas fa-spell-check"></i> <span data-en="Alphabet" data-ar="الأبجدية">Alphabet</span>
+                </button>
+                <button class="category-card" data-game="numbers" data-en-text="Numbers" data-ar-text="الأرقام">
+                    <i class="fas fa-calculator"></i> <span data-en="Numbers" data-ar="الأرقام">Numbers</span>
+                </button>
+                <button class="category-card" data-game="days" data-en-text="Days of the Week" data-ar-text="أيام الأسبوع">
+                    <i class="fas fa-calendar-alt"></i> <span data-en="Days of the Week" data-ar="أيام الأسبوع">Days of the Week</span>
+                </button>
+                <button class="category-card" data-game="months" data-en-text="Months" data-ar-text="الشهور">
+                    <i class="fas fa-calendar-check"></i> <span data-en="Months" data-ar="الشهور">Months</span>
+                </button>
+                <button class="category-card" data-game="colors" data-en-text="Colors" data-ar-text="الألوان">
+                    <i class="fas fa-palette"></i> <span data-en="Colors" data-ar="الألوان">Colors</span>
+                </button>
+                <button class="category-card" data-game="animals" data-en-text="Animals" data-ar-text="الحيوانات">
+                    <i class="fas fa-paw"></i> <span data-en="Animals" data-ar="الحيوانات">Animals</span>
+                </button>
+                <button class="category-card" data-game="food" data-en-text="Food" data-ar-text="الطعام">
+                    <i class="fas fa-utensils"></i> <span data-en="Food" data-ar="الطعام">Food</span>
+                </button>
+                <button class="category-card" data-game="greetings" data-en-text="Greetings" data-ar-text="التحيات">
+                    <i class="fas fa-handshake"></i> <span data-en="Greetings" data-ar="التحيات">Greetings</span>
+                </button>
+                <button class="category-card" data-game="family" data-en-text="Family" data-ar-text="العائلة">
+                    <i class="fas fa-users"></i> <span data-en="Family" data-ar="العائلة">Family</span>
+                </button>
+                <button class="category-card" data-game="bodyParts" data-en-text="Body Parts" data-ar-text="أجزاء الجسم">
+                    <i class="fas fa-child"></i> <span data-en="Body Parts" data-ar="أجزاء الجسم">Body Parts</span>
+                </button>
+                <button class="category-card" data-game="clothes" data-en-text="Clothes" data-ar-text="الملابس">
+                    <i class="fas fa-tshirt"></i> <span data-en="Clothes" data-ar="الملابس">Clothes</span>
+                </button>
+                <button class="category-card" data-game="transportation" data-en-text="Transportation" data-ar-text="وسائل النقل">
+                    <i class="fas fa-bus"></i> <span data-en="Transportation" data-ar="وسائل النقل">Transportation</span>
+                </button>
+                <button class="category-card" data-game="occupations" data-en-text="Occupations" data-ar-text="المهن">
+                    <i class="fas fa-briefcase"></i> <span data-en="Occupations" data-ar="المهن">Occupations</span>
+                </button>
+                <button class="category-card" data-game="places" data-en-text="Places" data-ar-text="الأماكن">
+                    <i class="fas fa-map-marker-alt"></i> <span data-en="Places" data-ar="الأماكن">Places</span>
+                </button>
+                <button class="category-card" data-game="weather" data-en-text="Weather" data-ar-text="الطقس">
+                    <i class="fas fa-cloud-sun"></i> <span data-en="Weather" data-ar="الطقس">Weather</span>
+                </button>
+                <button class="category-card" data-game="time" data-en-text="Time" data-ar-text="الوقت">
+                    <i class="fas fa-clock"></i> <span data-en="Time" data-ar="الوقت">Time</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="gamePage" class="page-content game-page">
+            <h1 id="gameTitle"></h1>
+            <div class="score-display" id="scoreDisplay" role="status" aria-live="polite" data-en="Score: 0" data-ar="النقاط: 0">Score: 0</div>
+            <div class="question-display" id="questionDisplay" aria-atomic="true" aria-live="assertive" data-en="Press 'Start Game' to begin!" data-ar="اضغط 'ابدأ اللعبة' للبدء!">Press 'Start Game' to begin!</div>
+            <input type="text" id="answerInput" class="answer-input" placeholder="Your answer" disabled aria-label="Enter your answer here" data-en-placeholder="Your answer" data-ar-placeholder="إجابتك">
+            <div class="feedback-message" id="feedbackMessage" role="alert" aria-live="assertive"></div>
+            <button id="startButton" class="action-button" data-en="Start Game" data-ar="ابدأ اللعبة">Start Game</button>
+            <button id="submitButton" class="action-button" style="display: none;" data-en="Submit Answer" data-ar="إرسال الإجابة">Submit Answer</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainHomePage = document.getElementById('mainHomePage');
+            const learnCategoriesPage = document.getElementById('learnCategoriesPage');
+            const learnDefinitionsPage = document.getElementById('learnDefinitionsPage');
+            const practiceCategoriesPage = document.getElementById('practiceCategoriesPage');
+            const gamePage = document.getElementById('gamePage');
+            const gameTitleElement = document.getElementById('gameTitle');
+            const backButton = document.getElementById('backButton');
+            const languageToggle = document.getElementById('languageToggle');
+            const body = document.body;
+
+            const questionDisplay = document.getElementById('questionDisplay');
+            const answerInput = document.getElementById('answerInput');
+            const submitButton = document.getElementById('submitButton');
+            const startButton = document.getElementById('startButton');
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+
+            const gameData = {
+                alphabet: [
+                    { darija_ar: "أ", transcription: "Alif", audio: "a.mp3" },
+                    { darija_ar: "ب", transcription: "Ba", audio: "b.mp3" },
+                    { darija_ar: "ت", transcription: "Ta", audio: "t.mp3" },
+                    { darija_ar: "ث", transcription: "Tha", audio: "th.mp3" },
+                    { darija_ar: "ج", transcription: "Jim", audio: "j.mp3" },
+                    { darija_ar: "ح", transcription: "Ha", audio: "h.mp3" },
+                    { darija_ar: "خ", transcription: "Kha", audio: "kh.mp3" },
+                    { darija_ar: "د", transcription: "Dal", audio: "d.mp3" },
+                    { darija_ar: "ذ", transcription: "Dhal", audio: "dh.mp3" },
+                    { darija_ar: "ر", transcription: "Ra", audio: "r.mp3" },
+                    { darija_ar: "ز", transcription: "Zayn", audio: "z.mp3" },
+                    { darija_ar: "س", transcription: "Sin", audio: "s.mp3" },
+                    { darija_ar: "ش", transcription: "Shin", audio: "sh.mp3" },
+                    { darija_ar: "ص", transcription: "Sad", audio: "sad.mp3" },
+                    { darija_ar: "ض", transcription: "Dad", audio: "dad.mp3" },
+                    { darija_ar: "ط", transcription: "Ta", audio: "taa.mp3" },
+                    { darija_ar: "ظ", transcription: "Zha", audio: "zhaa.mp3" },
+                    { darija_ar: "ع", transcription: "Ayn", audio: "ayn.mp3" },
+                    { darija_ar: "غ", transcription: "Ghayn", audio: "ghayn.mp3" },
+                    { darija_ar: "ف", transcription: "Fa", audio: "f.mp3" },
+                    { darija_ar: "ق", transcription: "Qaf", audio: "qaf.mp3" },
+                    { darija_ar: "ك", transcription: "Kaf", audio: "k.mp3" },
+                    { darija_ar: "ل", transcription: "Lam", audio: "l.mp3" },
+                    { darija_ar: "م", transcription: "Mim", audio: "m.mp3" },
+                    { darija_ar: "ن", transcription: "Nun", audio: "n.mp3" },
+                    { darija_ar: "ه", transcription: "Ha", audio: "haa.mp3" },
+                    { darija_ar: "و", transcription: "Waw", audio: "w.mp3" },
+                    { darija_ar: "ي", transcription: "Ya", audio: "y.mp3" },
+                ],
+                numbers: [
+                    { english: "zero", darija: "sifr", darija_ar: "صفر", num: "0" },
+                    { english: "one", darija: "wa7ed", darija_ar: "واحد", num: "1" },
+                    { english: "two", darija: "jouj", darija_ar: "جوج", num: "2" },
+                    { english: "three", darija: "tlata", darija_ar: "تلاتة", num: "3" },
+                    { english: "four", darija: "reb3a", darija_ar: "ربعة", num: "4" },
+                    { english: "five", darija: "khemsa", darija_ar: "خمسة", num: "5" },
+                    { english: "six", darija: "setta", darija_ar: "ستة", num: "6" },
+                    { english: "seven", darija: "seb3a", darija_ar: "سبعة", num: "7" },
+                    { english: "eight", darija: "tmenya", darija_ar: "تمنية", num: "8" },
+                    { english: "nine", darija: "tes3oud", darija_ar: "تسعود", num: "9" },
+                    { english: "ten", darija: "3achra", darija_ar: "عشرة", num: "10" }
+                ],
+                days: [
+                    { english: "Sunday", darija: "l7edd", darija_ar: "الأحد" },
+                    { english: "Monday", darija: "ltnin", darija_ar: "الإثنين" },
+                    { english: "Tuesday", darija: "ttlat", darija_ar: "الثلاثاء" },
+                    { english: "Wednesday", darija: "larb3a", darija_ar: "الأربعاء" },
+                    { english: "Thursday", darija: "lkhamis", darija_ar: "الخميس" },
+                    { english: "Friday", darija: "jjum3a", darija_ar: "الجمعة" },
+                    { english: "Saturday", darija: "ssabtt", darija_ar: "السبت" }
+                ],
+                months: [
+                    { english: "January", darija: "yanayer", darija_ar: "يناير" },
+                    { english: "February", darija: "febrayer", darija_ar: "فبراير" },
+                    { english: "March", darija: "mars", darija_ar: "مارس" },
+                    { english: "April", darija: "abril", darija_ar: "أبريل" },
+                    { english: "May", darija: "may", darija_ar: "ماي" },
+                    { english: "June", darija: "yunyu", darija_ar: "يونيو" },
+                    { english: "July", darija: "yulyuz", darija_ar: "يوليوز" },
+                    { english: "August", darija: "ghusht", darija_ar: "غشت" },
+                    { english: "September", darija: "shutnbir", darija_ar: "شتنبر" },
+                    { english: "October", darija: "uktubar", darija_ar: "أكتوبر" },
+                    { english: "November", darija: "nuwanbir", darija_ar: "نونبر" },
+                    { english: "December", darija: "dujanbir", darija_ar: "دجنبر" }
+                ],
+                colors: [
+                    { english: "red", darija: "ḥmer", darija_ar: "حمر" },
+                    { english: "blue", darija: "zreq", darija_ar: "زرق" },
+                    { english: "green", darija: "khḍer", darija_ar: "خضر" },
+                    { english: "yellow", darija: "ṣfer", darija_ar: "صفر" },
+                    { english: "black", darija: "kḥel", darija_ar: "كحل" },
+                    { english: "white", darija: "biḍ", darija_ar: "بيض" },
+                    { english: "orange", darija: "limuni", darija_ar: "ليموني" },
+                    { english: "purple", darija: "benafseji", darija_ar: "بنفسجي" },
+                    { english: "pink", darija: "werdi", darija_ar: "وردي" },
+                    { english: "brown", darija: "qahwi", darija_ar: "قهوي" },
+                    { english: "grey", darija: "ramadi", darija_ar: "رمادي" }
+                ],
+                animals: [
+                    { english: "dog", darija: "kelb", darija_ar: "كلب" },
+                    { english: "cat", darija: "qet", darija_ar: "قط" },
+                    { english: "bird", darija: "ṭir", darija_ar: "طير" },
+                    { english: "fish", darija: "ḥout", darija_ar: "حوت" },
+                    { english: "lion", darija: "sbeʿ", darija_ar: "سبع" },
+                    { english: "elephant", darija: "fil", darija_ar: "فيل" },
+                    { english: "horse", darija: "ʿawd", darija_ar: "عود" },
+                    { english: "cow", darija: "begra", darija_ar: "بقرة" },
+                    { english: "sheep", darija: "ḥawli", darija_ar: "حولي" },
+                    { english: "chicken", darija: "djej", darija_ar: "دجاج" }
+                ],
+                food: [
+                    { english: "bread", darija: "khobz", darija_ar: "خبز" },
+                    { english: "water", darija: "ma", darija_ar: "ما" },
+                    { english: "tea", darija: "atay", darija_ar: "أتاي" },
+                    { english: "apple", darija: "teffaḥ", darija_ar: "تفاح" },
+                    { english: "banana", darija: "banan", darija_ar: "بنان" },
+                    { english: "meat", darija: "lḥem", darija_ar: "لحم" },
+                    { english: "chicken", darija: "djej", darija_ar: "دجاج" },
+                    { english: "egg", darija: "biḍa", darija_ar: "بيضة" },
+                    { english: "milk", darija: "ḥlib", darija_ar: "حليب" },
+                    { english: "orange juice", darija: "3aṣir limoun", darija_ar: "عصير الليمون" }
+                ],
+                greetings: [
+                    { english: "hello", darija: "salam", darija_ar: "سلام" },
+                    { english: "goodbye", darija: "bslama", darija_ar: "بسلامة" },
+                    { english: "thank you", darija: "shukran", darija_ar: "شكرا" },
+                    { english: "please", darija: "3afak", darija_ar: "عافاك" },
+                    { english: "yes", darija: "iyyeh", darija_ar: "إييه" },
+                    { english: "no", darija: "lla", darija_ar: "لا" },
+                    { english: "how are you?", darija: "kif dayr?", darija_ar: "كيف داير؟" },
+                    { english: "welcome", darija: "marḥba", darija_ar: "مرحبا" },
+                    { english: "good morning", darija: "sbaḥ lkhir", darija_ar: "صباح الخير" },
+                    { english: "good evening", darija: "msa lkhir", darija_ar: "مساء الخير" }
+                ],
+                family: [
+                    { english: "mother", darija: "mmi", darija_ar: "مي" },
+                    { english: "father", darija: "bba", darija_ar: "با" },
+                    { english: "brother", darija: "khuya", darija_ar: "خويا" },
+                    { english: "sister", darija: "khti", darija_ar: "ختي" },
+                    { english: "son", darija: "weld", darija_ar: "ولد" },
+                    { english: "daughter", darija: "bent", darija_ar: "بنت" },
+                    { english: "grandfather", darija: "jeddi", darija_ar: "جدي" },
+                    { english: "grandmother", darija: "jeddati", darija_ar: "جداتي" },
+                    { english: "uncle (paternal)", darija: "3emmi", darija_ar: "عمي" },
+                    { english: "aunt (paternal)", darija: "3emmeti", darija_ar: "عمتي" }
+                ],
+                bodyParts: [
+                    { english: "hand", darija: "yed", darija_ar: "يد" },
+                    { english: "foot", darija: "rejel", darija_ar: "رجل" },
+                    { english: "head", darija: "ras", darija_ar: "راس" },
+                    { english: "eye", darija: "3in", darija_ar: "عين" },
+                    { english: "mouth", darija: "fomm", darija_ar: "فم" },
+                    { english: "nose", darija: "nif", darija_ar: "نيف" },
+                    { english: "ear", darija: "wedn", darija_ar: "ودن" },
+                    { english: "arm", darija: "dra3", darija_ar: "ذراع" },
+                    { english: "leg", darija: "saq", darija_ar: "ساق" },
+                    { english: "hair", darija: "sha3r", darija_ar: "شعر" }
+                ],
+                clothes: [
+                    { english: "shirt", darija: "qamija", darija_ar: "قاميجة" },
+                    { english: "pants", darija: "serwal", darija_ar: "سروال" },
+                    { english: "dress", darija: "kswa", darija_ar: "كسوة" },
+                    { english: "shoes", darija: "sabbat", darija_ar: "صّباط" },
+                    { english: "hat", darija: "ṭarboosh", darija_ar: "طربوش" },
+                    { english: "jacket", darija: "vesta", darija_ar: "فيستا" },
+                    { english: "skirt", darija: "sayya", darija_ar: "صاية" },
+                    { english: "socks", darija: "tqašer", darija_ar: "تقاشر" },
+                    { english: "scarf", darija: "zif", darija_ar: "زيف" },
+                    { english: "gloves", darija: "ligat", darija_ar: "ليگات" }
+                ],
+                transportation: [
+                    { english: "car", darija: "ṭomobil", darija_ar: "طوموبيل" },
+                    { english: "bus", darija: "kar", darija_ar: "كار" },
+                    { english: "train", darija: "train", darija_ar: "تران" },
+                    { english: "bicycle", darija: "biškliṭa", darija_ar: "بيشكليطة" },
+                    { english: "plane", darija: "ṭayyara", darija_ar: "طيارة" },
+                    { english: "motorcycle", darija: "motor", darija_ar: "موتور" },
+                    { english: "boat", darija: "flouka", darija_ar: "فلوكة" },
+                    { english: "taxi", darija: "taxi", darija_ar: "طاكسي" },
+                    { english: "metro", darija: "metro", darija_ar: "مترو" },
+                    { english: "tram", darija: "tram", darija_ar: "ترام" }
+                ],
+                occupations: [
+                    { english: "teacher", darija: "ostad", darija_ar: "أستاذ" },
+                    { english: "doctor", darija: "ṭbib", darija_ar: "طبيب" },
+                    { english: "student", darija: "talib", darija_ar: "طالب" },
+                    { english: "engineer", darija: "muhandis", darija_ar: "مهندس" },
+                    { english: "farmer", darija: "fellaḥ", darija_ar: "فلاح" },
+                    { english: "police officer", darija: "bolisi", darija_ar: "بوليسي" },
+                    { english: "shopkeeper", darija: "mol lḥanot", darija_ar: "مول الحانوت" },
+                    { english: "driver", darija: "shefor", darija_ar: "شفر" },
+                    { english: "cook", darija: "ṭabbakh", darija_ar: "طباخ" },
+                    { english: "artist", darija: "fennan", darija_ar: "فنان" }
+                ],
+                places: [
+                    { english: "house", darija: "dar", darija_ar: "دار" },
+                    { english: "school", darija: "madrasa", darija_ar: "مدرسة" },
+                    { english: "market", darija: "souq", darija_ar: "سوق" },
+                    { english: "hospital", darija: "sbiṭar", darija_ar: "سبيطار" },
+                    { english: "restaurant", darija: "maṭ3am", darija_ar: "مطعم" },
+                    { english: "city", darija: "mdina", darija_ar: "مدينة" },
+                    { english: "village", darija: "douar", darija_ar: "دوار" },
+                    { english: "mosque", darija: "jam3", darija_ar: "جامع" },
+                    { english: "beach", darija: "bhar", darija_ar: "بحر" },
+                    { english: "park", darija: "hadiqa", darija_ar: "حدق" }
+                ],
+                weather: [
+                    { english: "sun", darija: "shems", darija_ar: "شمس" },
+                    { english: "rain", darija: "shta", darija_ar: "شتا" },
+                    { english: "cold", darija: "berd", darija_ar: "برد" },
+                    { english: "hot", darija: "sehd", darija_ar: "صهد" },
+                    { english: "wind", darija: "riḥ", darija_ar: "ريح" },
+                    { english: "cloud", darija: "ghyam", darija_ar: "غيام" },
+                    { english: "snow", darija: "telj", darija_ar: "تلج" },
+                    { english: "storm", darija: "3aṣifa", darija_ar: "عاصفة" },
+                    { english: "sunny", darija: "mshmish", darija_ar: "مشماش" },
+                    { english: "cloudy", darija: "mghayem", darija_ar: "مغايم" }
+                ],
+                time: [
+                    { english: "hour", darija: "sa3a", darija_ar: "ساعة" },
+                    { english: "minute", darija: "dqiqa", darija_ar: "دقيق" },
+                    { english: "second", darija: "tanya", darija_ar: "تانية" },
+                    { english: "morning", darija: "sbaḥ", darija_ar: "صباح" },
+                    { english: "evening", darija: "3chiya", darija_ar: "عشية" },
+                    { english: "night", darija: "lil", darija_ar: "ليل" },
+                    { english: "day", darija: "nhar", darija_ar: "نهار" },
+                    { english: "week", darija: "simana", darija_ar: "سيمانة" },
+                    { english: "month", darija: "shehr", darija_ar: "شهر" },
+                    { english: "year", darija: "3am", darija_ar: "عام" }
+                ]
+            };
+
+            let currentCategoryData = null;
+            let currentCategoryKey = null; // Store the key of the current category for game/learn pages
+            let currentQuestion = null;
+            let score = 0;
+            let gameActive = false;
+            let currentPageId = 'mainHomePage';
+            let currentLanguage = 'en'; // 'en' for English, 'ar' for Darija Arabic
+
+            const pages = {
+                mainHomePage: mainHomePage,
+                learnCategoriesPage: learnCategoriesPage,
+                learnDefinitionsPage: learnDefinitionsPage,
+                practiceCategoriesPage: practiceCategoriesPage,
+                gamePage: gamePage
+            };
+
+            // Function to play audio for alphabet letters
+            function playAudio(audioFileName) {
+                // Modified line: audio files are now expected in 'alphabet/' subfolder
+                const audio = new Audio(`alphabet/${audioFileName}`);
+                audio.play().catch(e => console.error("Error playing audio:", e));
+            }
+
+            // Function to set text content based on current language
+            function setLocalizedText() {
+                // Set body direction based on language
+                body.dir = (currentLanguage === 'ar') ? 'rtl' : 'ltr';
+                body.classList.toggle('darija-ar', currentLanguage === 'ar');
+
+                // Update language toggle button text
+                languageToggle.textContent = languageToggle.dataset[`${currentLanguage}`];
+
+                // Update all elements with data-en/data-ar attributes
+                document.querySelectorAll('[data-en], [data-ar], [data-en-placeholder], [data-ar-placeholder]').forEach(element => {
+                    const enText = element.dataset.en;
+                    const arText = element.dataset.ar;
+                    const enPlaceholder = element.dataset.enPlaceholder;
+                    const arPlaceholder = element.dataset.arPlaceholder;
+
+                    if (element.tagName === 'INPUT' && (enPlaceholder || arPlaceholder)) {
+                        element.placeholder = currentLanguage === 'en' ? enPlaceholder : arPlaceholder;
+                    } else if (enText || arText) {
+                        element.textContent = (currentLanguage === 'en' ? enText : arText);
+                    }
+                });
+
+                // Special handling for cards to re-render their internal spans if needed
+                document.querySelectorAll('.primary-card, .category-card').forEach(card => {
+                    if (card.classList.contains('primary-card')) {
+                        const mainTextSpan = card.querySelector('span:first-of-type');
+                        const subTextSpan = card.querySelector('span:last-of-type');
+                        if (mainTextSpan) {
+                            mainTextSpan.textContent = mainTextSpan.dataset[`${currentLanguage === 'en' ? 'en' : 'ar'}`];
+                        }
+                        if (subTextSpan) {
+                            subTextSpan.textContent = subTextSpan.dataset[`${currentLanguage === 'en' ? 'en' : 'ar'}`];
+                        }
+                    } else if (card.classList.contains('category-card')) {
+                        const categoryTextSpan = card.querySelector('span');
+                        if (categoryTextSpan) {
+                           categoryTextSpan.textContent = card.dataset[`${currentLanguage === 'en' ? 'enText' : 'arText'}`];
+                        }
+                    }
+                });
+                
+                // Update the document title
+                document.title = document.querySelector('title').dataset[`${currentLanguage === 'en' ? 'en' : 'ar'}`];
+
+                // Update dynamic page content if active
+                if (currentPageId === 'learnDefinitionsPage' && currentCategoryKey) {
+                    generateLearnDefinitionsContent(currentCategoryKey); // Re-generate definitions for language change
+                } else if (currentPageId === 'gamePage' && currentCategoryKey) {
+                    updateGameDisplayLanguage(); // Update game text without resetting game state
+                }
+            }
+
+            // Function to handle page transitions
+            function showPage(pageId) {
+                // Prevent transition if already on the same page
+                if (currentPageId === pageId && pages[pageId].classList.contains('active')) {
+                    return;
+                }
+
+                const prevPageElement = pages[currentPageId];
+                const nextPageElement = pages[pageId];
+
+                // Deactivate previous page
+                if (prevPageElement) {
+                    prevPageElement.classList.remove('active');
+                }
+
+                // Hide all pages initially to ensure only one is visible
+                Object.values(pages).forEach(page => {
+                    page.style.display = 'none';
+                });
+
+                // Show and activate the next page with a slight delay for transition effect
+                nextPageElement.style.display = 'flex';
+                setTimeout(() => {
+                    nextPageElement.classList.add('active');
+                }, 10);
+
+                currentPageId = pageId;
+                updateBackButtonVisibility(); // Manage back button visibility
+                setLocalizedText(); // Re-apply text for the new page
+            }
+
+            // Manages the back button's visibility
+            function updateBackButtonVisibility() {
+                if (currentPageId !== 'mainHomePage') {
+                    backButton.classList.add('active');
+                } else {
+                    backButton.classList.remove('active');
+                }
+            }
+
+            // Handles navigation back to the previous page logic
+            function goBack() {
+                let targetPageId = 'mainHomePage';
+
+                if (currentPageId === 'learnCategoriesPage' || currentPageId === 'practiceCategoriesPage') {
+                    targetPageId = 'mainHomePage';
+                } else if (currentPageId === 'learnDefinitionsPage') {
+                    if (currentCategoryKey === 'alphabet') {
+                        // If coming from alphabet learn, go back to learn categories
+                        targetPageId = 'learnCategoriesPage';
+                    } else {
+                        targetPageId = 'learnCategoriesPage';
+                    }
+                    currentCategoryKey = null; // Clear category key when going back from definitions
+                } else if (currentPageId === 'gamePage') {
+                    targetPageId = 'practiceCategoriesPage';
+                    gameActive = false; // End game when going back
+                    currentCategoryKey = null; // Clear category key when going back from game
+                }
+                showPage(targetPageId);
+            }
+
+            // Generates and displays the word definitions for a selected category
+            function generateLearnDefinitionsContent(categoryKey) {
+                currentCategoryKey = categoryKey;
+                const definitionsContainer = learnDefinitionsPage;
+                const categoryData = gameData[categoryKey];
+                const categoryCard = document.querySelector(`.category-card[data-category-key="${categoryKey}"]`);
+
+                // Determine display names for the category based on current language
+                const categoryDisplayNameEn = categoryCard ? categoryCard.dataset.enText : categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace(/([A-Z])/g, ' $1').trim();
+                const categoryDisplayNameAr = categoryCard ? categoryCard.dataset.arText : '';
+
+                if (!categoryData) {
+                    definitionsContainer.innerHTML = `
+                        <h1 data-en="${categoryDisplayNameEn} Definitions" data-ar="تعاريف ${categoryDisplayNameAr}">
+                            ${currentLanguage === 'en' ? `${categoryDisplayNameEn} Definitions` : `تعاريف ${categoryDisplayNameAr}`}
+                        </h1>
+                        <p data-en="No data found for this category." data-ar="لا توجد بيانات لهذه الفئة.">
+                            ${currentLanguage === 'en' ? 'No data found for this category.' : 'لا توجد بيانات لهذه الفئة.'}
+                        </p>
+                    `;
+                    return;
+                }
+
+                let contentHtml = `
+                    <h1 data-en="${categoryDisplayNameEn} Definitions" data-ar="تعاريف ${categoryDisplayNameAr}">
+                        ${currentLanguage === 'en' ? `${categoryDisplayNameEn} Definitions` : `تعاريف ${categoryDisplayNameAr}`}
+                    </h1>
+                `;
+
+                if (categoryKey === 'alphabet') {
+                    contentHtml += `<div class="alphabet-grid">`;
+                    categoryData.forEach(item => {
+                        contentHtml += `
+                            <div class="alphabet-letter" data-audio="${item.audio}" tabindex="0" role="button" aria-label="${item.transcription} in Arabic">
+                                ${item.darija_ar}
+                                <span class="transcription">${item.transcription}</span>
+                            </div>
+                        `;
+                    });
+                    contentHtml += `</div>`;
+                } else {
+                    contentHtml += `<div class="learn-word-list">`;
+                    categoryData.forEach(item => {
+                        let englishDisplay = item.english;
+                        if (categoryKey === 'numbers' && item.num) {
+                            englishDisplay = `${item.english} (${item.num})`; // Show number alongside English word
+                        }
+                        contentHtml += `
+                            <div class="learn-word-item" tabindex="0" role="listitem" aria-label="${item.english} in English, ${currentLanguage === 'en' ? item.darija : item.darija_ar} in Darija">
+                                <span class="english-word">${englishDisplay}</span>
+                                <span class="darija-word">${currentLanguage === 'en' ? item.darija : item.darija_ar}</span>
+                            </div>
+                        `;
+                    });
+                    contentHtml += `</div>`;
+                }
+                
+                definitionsContainer.innerHTML = contentHtml;
+
+                // Add event listeners for alphabet letters if on that page
+                if (categoryKey === 'alphabet') {
+                    document.querySelectorAll('.alphabet-letter').forEach(letterDiv => {
+                        letterDiv.addEventListener('click', () => {
+                            const audioFile = letterDiv.dataset.audio;
+                            if (audioFile) {
+                                playAudio(audioFile);
+                            }
+                        });
+                        letterDiv.addEventListener('keypress', (event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                const audioFile = letterDiv.dataset.audio;
+                                if (audioFile) {
+                                    playAudio(audioFile);
+                                }
+                            }
+                        });
+                    });
+                }
+            }
+
+            // Retrieves the localized game title
+            function getGameTitle(category, lang) {
+                const titles = {
+                    alphabet: { en: 'Alphabet Game!', ar: 'لعبة الأبجدية!' },
+                    numbers: { en: 'Numbers Game!', ar: 'لعبة الأرقام!' },
+                    days: { en: 'Days of the Week Game!', ar: 'لعبة أيام الأسبوع!' },
+                    months: { en: 'Months Game!', ar: 'لعبة الشهور!' },
+                    colors: { en: 'Colors Game!', ar: 'لعبة الألوان!' },
+                    animals: { en: 'Animals Game!', ar: 'لعبة الحيوانات!' },
+                    food: { en: 'Food Game!', ar: 'لعبة الطعام!' },
+                    greetings: { en: 'Greetings Game!', ar: 'لعبة التحيات!' },
+                    family: { en: 'Family Game!', ar: 'لعبة العائلة!' },
+                    bodyParts: { en: 'Body Parts Game!', ar: 'لعبة أجزاء الجسم!' },
+                    clothes: { en: 'Clothes Game!', ar: 'لعبة الملابس!' },
+                    transportation: { en: 'Transportation Game!', ar: 'لعبة وسائل النقل!' },
+                    occupations: { en: 'Occupations Game!', ar: 'لعبة المهن!' },
+                    places: { en: 'Places Game!', ar: 'لعبة الأماكن!' },
+                    weather: { en: 'Weather Game!', ar: 'لعبة الطقس!' },
+                    time: { en: 'Time Terms Game!', ar: 'لعبة مصطلحات الوقت!' }
+                };
+                return titles[category] ? titles[category][lang] : (lang === 'en' ? 'Darija Practice!' : 'تدرب على الدارجة!');
+            }
+
+            // Updates game page text elements based on current language
+            function updateGameDisplayLanguage() {
+                if (!currentCategoryKey) return;
+
+                gameTitleElement.textContent = getGameTitle(currentCategoryKey, currentLanguage);
+                gameTitleElement.dataset.en = getGameTitle(currentCategoryKey, 'en');
+                gameTitleElement.dataset.ar = getGameTitle(currentCategoryKey, 'ar');
+
+                scoreDisplay.textContent = `${(currentLanguage === 'en') ? 'Score' : 'النقاط'}: ${score}`;
+                scoreDisplay.dataset.en = `Score: ${score}`;
+                scoreDisplay.dataset.ar = `النقاط: ${score}`;
+
+                answerInput.placeholder = (currentLanguage === 'en') ? "Your answer" : "إجابتك";
+                answerInput.dataset.enPlaceholder = "Your answer";
+                answerInput.dataset.arPlaceholder = "إجابتك";
+
+                // Re-display the current question in the new language if a question is active
+                if (gameActive && currentQuestion) {
+                    if (currentCategoryKey === 'alphabet') {
+                        const selectedItem = gameData.alphabet.find(item =>
+                            item.darija_ar === currentQuestion.question || item.transcription === currentQuestion.question
+                        );
+
+                        if (selectedItem) {
+                            if (currentQuestion.type === 'arabic_to_transcription') {
+                                questionDisplay.textContent = selectedItem.darija_ar;
+                                currentQuestion.question = selectedItem.darija_ar;
+                                currentQuestion.answer = selectedItem.transcription.toLowerCase();
+                            } else { // transcription_to_arabic
+                                questionDisplay.textContent = selectedItem.transcription.toUpperCase();
+                                currentQuestion.question = selectedItem.transcription.toUpperCase();
+                                currentQuestion.answer = selectedItem.darija_ar;
+                            }
+                        }
+                    } else { // Existing game categories
+                        const selectedItem = gameData[currentCategoryKey].find(item =>
+                            (item.english && item.english.toUpperCase() === currentQuestion.question) ||
+                            (item.darija_ar && item.darija_ar === currentQuestion.question) ||
+                            (item.darija && item.darija.toUpperCase() === currentQuestion.question)
+                        );
+
+                        if (selectedItem) {
+                            const hasNum = selectedItem.hasOwnProperty('num');
+                            const questionType = currentQuestion.type;
+
+                            if (currentLanguage === 'en') {
+                                if (questionType === 'darija_latin' || questionType === 'darija_arabic') {
+                                    questionDisplay.textContent = selectedItem.english.toUpperCase();
+                                    currentQuestion.question = selectedItem.english.toUpperCase();
+                                    currentQuestion.answer = selectedItem.darija.toLowerCase();
+                                    currentQuestion.type = 'darija_latin';
+                                } else {
+                                    questionDisplay.textContent = selectedItem.darija.toUpperCase();
+                                    currentQuestion.question = selectedItem.darija.toUpperCase();
+                                    currentQuestion.answer = hasNum ? selectedItem.num.toLowerCase() : selectedItem.english.toLowerCase();
+                                    currentQuestion.type = hasNum ? 'english_num' : 'english_word';
+                                }
+                            } else { // Arabic mode
+                                if (questionType === 'darija_latin' || questionType === 'darija_arabic') {
+                                    questionDisplay.textContent = selectedItem.english.toUpperCase();
+                                    currentQuestion.question = selectedItem.english.toUpperCase();
+                                    currentQuestion.answer = selectedItem.darija_ar;
+                                    currentQuestion.type = 'darija_arabic';
+                                } else {
+                                    questionDisplay.textContent = selectedItem.darija_ar;
+                                    currentQuestion.question = selectedItem.darija_ar;
+                                    currentQuestion.answer = hasNum ? selectedItem.num.toLowerCase() : selectedItem.english.toLowerCase();
+                                    currentQuestion.type = hasNum ? 'english_num' : 'english_word';
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    questionDisplay.textContent = (currentLanguage === 'en') ? 'Press "Start Game" to begin!' : 'اضغط "ابدأ اللعبة" للبدء!';
+                    questionDisplay.dataset.en = 'Press "Start Game" to begin!';
+                    questionDisplay.dataset.ar = 'اضغط "ابدأ اللعبة" للبدء!';
+                }
+
+                // Update feedback message if visible
+                if (feedbackMessage.textContent) {
+                    let lastFeedbackIsCorrect = feedbackMessage.classList.contains('correct');
+                    let originalAnswerItem = null;
+                    if (currentQuestion && currentCategoryKey) {
+                        if (currentCategoryKey === 'alphabet') {
+                             originalAnswerItem = gameData.alphabet.find(item =>
+                                 cleanAnswer(item.transcription) === cleanAnswer(currentQuestion.answer) ||
+                                 item.darija_ar === currentQuestion.answer
+                             );
+                        } else {
+                            originalAnswerItem = gameData[currentCategoryKey].find(item =>
+                                cleanAnswer(item.english) === cleanAnswer(currentQuestion.answer) ||
+                                cleanAnswer(item.darija) === cleanAnswer(currentQuestion.answer) ||
+                                (item.num && cleanAnswer(item.num) === cleanAnswer(currentQuestion.answer)) ||
+                                item.darija_ar === currentQuestion.answer
+                            );
+                        }
+                    }
+
+                    let translatedCorrectAnswer = '';
+                    if (originalAnswerItem) {
+                        if (currentCategoryKey === 'alphabet') {
+                            translatedCorrectAnswer = currentQuestion.type === 'arabic_to_transcription' ? originalAnswerItem.transcription : originalAnswerItem.darija_ar;
+                        } else {
+                            if (currentQuestion.type === 'darija_latin') {
+                                translatedCorrectAnswer = currentLanguage === 'en' ? originalAnswerItem.darija : originalAnswerItem.darija_ar;
+                            } else if (currentQuestion.type === 'darija_arabic') {
+                                translatedCorrectAnswer = currentLanguage === 'en' ? originalAnswerItem.darija : originalAnswerItem.darija_ar;
+                            } else if (currentQuestion.type === 'english_num') {
+                                translatedCorrectAnswer = currentLanguage === 'en' ? `${originalAnswerItem.english} (${originalAnswerItem.num})` : `${originalAnswerItem.darija_ar} (${originalAnswerItem.num})`;
+                            } else { // english_word
+                                translatedCorrectAnswer = currentLanguage === 'en' ? originalAnswerItem.english : originalAnswerItem.darija_ar;
+                            }
+                        }
+                    } else {
+                        translatedCorrectAnswer = currentQuestion.answer;
+                    }
+
+                    if (lastFeedbackIsCorrect) {
+                        feedbackMessage.textContent = (currentLanguage === 'en') ? 'Correct! 🎉' : 'صحيح! 🎉';
+                    } else {
+                        feedbackMessage.textContent = (currentLanguage === 'en') ?
+                            `Incorrect. The correct answer was "${translatedCorrectAnswer}".` :
+                            `خطأ. الإجابة الصحيحة كانت "${translatedCorrectAnswer}".`;
+                    }
+                }
+            }
+
+            // Initializes a new game session for the selected category
+            function loadGame(category) {
+                currentCategoryKey = category;
+                currentCategoryData = gameData[category];
+                if (!currentCategoryData || currentCategoryData.length === 0) {
+                    console.error('Invalid or empty game category:', category);
+                    // Use a custom message box instead of alert()
+                    feedbackMessage.textContent = (currentLanguage === 'en') ? 'Sorry, no game data available for this category yet!' : 'سمح لينا، ما كاينة حتى معطيات لهاد الفئة ديال اللعب!';
+                    feedbackMessage.classList.add('incorrect'); // Show as an error
+                    return;
+                }
+
+                // Reset game state
+                score = 0;
+                gameActive = false;
+                feedbackMessage.textContent = '';
+                feedbackMessage.className = 'feedback-message'; // Reset classes
+                answerInput.value = '';
+                answerInput.disabled = true;
+                startButton.style.display = 'flex';
+                submitButton.style.display = 'none';
+
+                updateGameDisplayLanguage(); // Set initial localized text
+                showPage('gamePage');
+            }
+
+            // Starts the game round
+            function startGame() {
+                score = 0;
+                scoreDisplay.textContent = `${(currentLanguage === 'en') ? 'Score' : 'النقاط'}: ${score}`;
+                feedbackMessage.textContent = '';
+                feedbackMessage.className = 'feedback-message';
+                answerInput.value = '';
+                answerInput.disabled = false;
+                startButton.style.display = 'none';
+                submitButton.style.display = 'flex';
+                answerInput.focus();
+                gameActive = true;
+                generateQuestion();
+            }
+
+            // Generates a new question for the current game
+            function generateQuestion() {
+                if (!currentCategoryData || currentCategoryData.length === 0) {
+                    questionDisplay.textContent = (currentLanguage === 'en') ? "No data for this game category!" : "لا توجد بيانات لهذه الفئة من اللعبة!";
+                    answerInput.disabled = true;
+                    submitButton.style.display = 'none';
+                    return;
+                }
+
+                questionDisplay.style.opacity = '0';
+                questionDisplay.style.transform = 'scale(0.95)';
+
+                setTimeout(() => {
+                    feedbackMessage.textContent = '';
+                    feedbackMessage.className = 'feedback-message';
+
+                    const randomIndex = Math.floor(Math.random() * currentCategoryData.length);
+                    const selectedItem = currentCategoryData[randomIndex];
+
+                    if (currentCategoryKey === 'alphabet') {
+                        const questionChoice = (Math.random() < 0.5); // Randomly choose between Arabic letter or transcription question
+                        if (questionChoice) { // Ask Arabic letter, answer Transcription
+                            questionDisplay.textContent = selectedItem.darija_ar;
+                            currentQuestion = {
+                                question: selectedItem.darija_ar,
+                                answer: selectedItem.transcription.toLowerCase(),
+                                type: 'arabic_to_transcription'
+                            };
+                            if (selectedItem.audio) {
+                                playAudio(selectedItem.audio); // Play sound when the letter is shown
+                            }
+                        } else { // Ask Transcription, answer Arabic letter
+                            questionDisplay.textContent = selectedItem.transcription.toUpperCase();
+                            currentQuestion = {
+                                question: selectedItem.transcription.toUpperCase(),
+                                answer: selectedItem.darija_ar,
+                                type: 'transcription_to_arabic'
+                            };
+                        }
+                    } else { // Existing game categories logic
+                        const hasNum = selectedItem.hasOwnProperty('num');
+                        const questionChoice = (Math.random() < 0.5); // Randomly choose between English or Darija question
+
+                        if (currentLanguage === 'en') {
+                            if (questionChoice) { // Ask English, answer Darija (Latin script)
+                                questionDisplay.textContent = selectedItem.english.toUpperCase();
+                                currentQuestion = {
+                                    question: selectedItem.english.toUpperCase(),
+                                    answer: selectedItem.darija.toLowerCase(),
+                                    type: 'darija_latin'
+                                };
+                            } else { // Ask Darija (Latin script), answer English/Number
+                                questionDisplay.textContent = selectedItem.darija.toUpperCase();
+                                currentQuestion = {
+                                    question: selectedItem.darija.toUpperCase(),
+                                    answer: hasNum ? selectedItem.num.toLowerCase() : selectedItem.english.toLowerCase(),
+                                    type: hasNum ? 'english_num' : 'english_word'
+                                };
+                            }
+                        } else { // Arabic mode: prioritize asking English, answering Arabic. Or ask Arabic and answer English.
+                            if (questionChoice) { // Ask English, answer Darija (Arabic script)
+                                questionDisplay.textContent = selectedItem.english.toUpperCase();
+                                currentQuestion = {
+                                    question: selectedItem.english.toUpperCase(),
+                                    answer: selectedItem.darija_ar,
+                                    type: 'darija_arabic'
+                                };
+                            } else { // Ask Darija (Arabic script), answer English/Number
+                                 questionDisplay.textContent = selectedItem.darija_ar;
+                                currentQuestion = {
+                                    question: selectedItem.darija_ar,
+                                    answer: hasNum ? selectedItem.num.toLowerCase() : selectedItem.english.toLowerCase(),
+                                    type: hasNum ? 'english_num' : 'english_word'
+                                };
+                            }
+                        }
+                    }
+                    answerInput.value = '';
+                    answerInput.focus();
+
+                    questionDisplay.style.opacity = '1';
+                    questionDisplay.style.transform = 'scale(1)';
+                }, 300);
+            }
+
+            // Cleans the user's answer for comparison, mainly for Latin script Darija
+            function cleanAnswer(answer) {
+                return answer.replace(/é/g, 'e')
+                             .replace(/è/g, 'e')
+                             .replace(/à/g, 'a')
+                             .replace(/ù/g, 'u')
+                             .replace(/ç/g, 'c')
+                             .replace(/ṣ/g, 's')
+                             .replace(/ḍ/g, 'd')
+                             .replace(/ṭ/g, 't')
+                             .replace(/ḥ/g, 'h')
+                             .replace(/ẓ/g, 'z')
+                             .replace(/ʿ/g, '3') // Specific Darija character to number mapping
+                             .replace(/gh/g, 'gh')
+                             .replace(/kh/g, 'kh')
+                             .replace(/sh/g, 'sh')
+                             .replace(/ch/g, 'ch')
+                             .toLowerCase()
+                             .trim();
+            }
+
+            // Checks the user's answer against the correct one
+            function checkAnswer() {
+                if (!gameActive || answerInput.disabled) return;
+
+                const userAnswer = answerInput.value.trim();
+                let isCorrect = false;
+                let correctAnswerDisplay = "";
+
+                if (currentCategoryKey === 'alphabet') {
+                    if (currentQuestion.type === 'arabic_to_transcription') {
+                        isCorrect = cleanAnswer(userAnswer) === cleanAnswer(currentQuestion.answer);
+                        correctAnswerDisplay = currentQuestion.answer;
+                    } else if (currentQuestion.type === 'transcription_to_arabic') {
+                        isCorrect = userAnswer === currentQuestion.answer; // Direct comparison for Arabic script
+                        correctAnswerDisplay = currentQuestion.answer;
+                    }
+                } else { // Existing game categories logic
+                    if (currentQuestion.type === 'darija_latin') {
+                        isCorrect = cleanAnswer(userAnswer) === cleanAnswer(currentQuestion.answer);
+                        correctAnswerDisplay = currentQuestion.answer;
+                    } else if (currentQuestion.type === 'darija_arabic') {
+                        isCorrect = userAnswer === currentQuestion.answer; // Direct comparison for Arabic script
+                        correctAnswerDisplay = currentQuestion.answer;
+                    } else if (currentQuestion.type === 'english_num' || currentQuestion.type === 'english_word') {
+                        // Find the original item to display the correct answer in context
+                        const originalAnswerItem = gameData[currentCategoryKey].find(item =>
+                            cleanAnswer(item.english) === cleanAnswer(currentQuestion.answer) ||
+                            (item.num && cleanAnswer(item.num) === cleanAnswer(currentQuestion.answer))
+                        );
+
+                        isCorrect = cleanAnswer(userAnswer) === cleanAnswer(currentQuestion.answer) ||
+                                    (originalAnswerItem && cleanAnswer(userAnswer) === cleanAnswer(originalAnswerItem.english));
+
+                        if (currentQuestion.type === 'english_num' && originalAnswerItem) {
+                            correctAnswerDisplay = currentLanguage === 'en' ?
+                                `${originalAnswerItem.english} (${originalAnswerItem.num})` :
+                                `${originalAnswerItem.darija_ar} (${originalAnswerItem.num})`;
+                        } else if (originalAnswerItem) {
+                            correctAnswerDisplay = currentLanguage === 'en' ? originalAnswerItem.english : originalAnswerItem.darija_ar;
+                        } else {
+                            correctAnswerDisplay = currentQuestion.answer; // Fallback
+                        }
+                    }
+                }
+
+                if (isCorrect) {
+                    feedbackMessage.textContent = (currentLanguage === 'en') ? 'Correct! 🎉' : 'صحيح! 🎉';
+                    feedbackMessage.classList.add('correct');
+                    feedbackMessage.classList.remove('incorrect');
+                    score++;
+                } else {
+                    feedbackMessage.textContent = (currentLanguage === 'en') ?
+                        `Incorrect. The correct answer was "${correctAnswerDisplay}".` :
+                        `خطأ. الإجابة الصحيحة كانت "${correctAnswerDisplay}".`;
+                    feedbackMessage.classList.add('incorrect');
+                    feedbackMessage.classList.remove('correct');
+                    score = Math.max(0, score - 1); // Prevent score from going below zero
+                }
+                scoreDisplay.textContent = `${(currentLanguage === 'en') ? 'Score' : 'النقاط'}: ${score}`;
+
+                answerInput.disabled = true;
+                setTimeout(() => {
+                    answerInput.disabled = false;
+                    generateQuestion();
+                }, 1500); // Short delay before next question
+            }
+
+            // Event Listeners for navigation and game actions
+            document.querySelectorAll('.main-category-grid .primary-card').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const targetPage = event.currentTarget.dataset.targetPage;
+                    showPage(targetPage);
+                });
+            });
+
+            document.querySelectorAll('#learnCategoriesPage .category-card').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const categoryKey = event.currentTarget.dataset.categoryKey;
+                    generateLearnDefinitionsContent(categoryKey);
+                    showPage('learnDefinitionsPage');
+                });
+            });
+
+            document.querySelectorAll('#practiceCategoriesPage .category-card').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const gameType = event.currentTarget.dataset.game;
+                    loadGame(gameType);
+                });
+            });
+
+            startButton.addEventListener('click', startGame);
+            submitButton.addEventListener('click', checkAnswer);
+
+            backButton.addEventListener('click', goBack);
+
+            // Allow "Enter" key to submit answer
+            answerInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter' && gameActive && !answerInput.disabled) {
+                    checkAnswer();
+                }
+            });
+
+            // Language toggle functionality
+            languageToggle.addEventListener('click', () => {
+                currentLanguage = (currentLanguage === 'en') ? 'ar' : 'en';
+                setLocalizedText();
+            });
+
+            // Initial setup on page load
+            showPage('mainHomePage');
+            setLocalizedText(); // Apply initial language and content
+        });
+    </script>
+</body>
+</html>
