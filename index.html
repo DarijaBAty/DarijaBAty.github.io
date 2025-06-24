@@ -122,7 +122,7 @@
             border: none;
             cursor: pointer;
             transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
-            box-sizing: border-box;
+            box-sizing: border-sizing;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -984,34 +984,34 @@
 
             const gameData = {
                 alphabet: [
-                    { darija_ar: "أ", transcription: "Alif", audio: "a.mp3" },
-                    { darija_ar: "ب", transcription: "Ba", audio: "b.mp3" },
-                    { darija_ar: "ت", transcription: "Ta", audio: "t.mp3" },
-                    { darija_ar: "ث", transcription: "Tha", audio: "th.mp3" },
-                    { darija_ar: "ج", transcription: "Jim", audio: "j.mp3" },
-                    { darija_ar: "ح", transcription: "Ha", audio: "h.mp3" },
-                    { darija_ar: "خ", transcription: "Kha", audio: "kh.mp3" },
-                    { darija_ar: "د", transcription: "Dal", audio: "d.mp3" },
-                    { darija_ar: "ذ", transcription: "Dhal", audio: "dh.mp3" },
-                    { darija_ar: "ر", transcription: "Ra", audio: "r.mp3" },
-                    { darija_ar: "ز", transcription: "Zayn", audio: "z.mp3" },
-                    { darija_ar: "س", transcription: "Sin", audio: "s.mp3" },
-                    { darija_ar: "ش", transcription: "Shin", audio: "sh.mp3" },
+                    { darija_ar: "ا", transcription: "Alif", audio: "alif.mp3" },
+                    { darija_ar: "ب", transcription: "Ba", audio: "ba.mp3" },
+                    { darija_ar: "ت", transcription: "Ta", audio: "ta.mp3" },
+                    { darija_ar: "ث", transcription: "Tha", audio: "tha.mp3" },
+                    { darija_ar: "ج", transcription: "Jim", audio: "jim.mp3" },
+                    { darija_ar: "ح", transcription: "Ha", audio: "ha.mp3" },
+                    { darija_ar: "خ", transcription: "Kha", audio: "kha.mp3" },
+                    { darija_ar: "د", transcription: "Dal", audio: "dal.mp3" },
+                    { darija_ar: "ذ", transcription: "Dhal", audio: "dhal.mp3" },
+                    { darija_ar: "ر", transcription: "Ra", audio: "ra.mp3" },
+                    { darija_ar: "ز", transcription: "Zay", audio: "zay.mp3" },
+                    { darija_ar: "س", transcription: "Sin", audio: "sin.mp3" },
+                    { darija_ar: "ش", transcription: "Shin", audio: "shin.mp3" },
                     { darija_ar: "ص", transcription: "Sad", audio: "sad.mp3" },
                     { darija_ar: "ض", transcription: "Dad", audio: "dad.mp3" },
-                    { darija_ar: "ط", transcription: "Ta", audio: "taa.mp3" },
-                    { darija_ar: "ظ", transcription: "Zha", audio: "zhaa.mp3" },
+                    { darija_ar: "ط", transcription: "Tah", audio: "tah.mp3" },
+                    { darija_ar: "ظ", transcription: "Zah", audio: "zah.mp3" },
                     { darija_ar: "ع", transcription: "Ayn", audio: "ayn.mp3" },
                     { darija_ar: "غ", transcription: "Ghayn", audio: "ghayn.mp3" },
-                    { darija_ar: "ف", transcription: "Fa", audio: "f.mp3" },
+                    { darija_ar: "ف", transcription: "Fa", audio: "fa.mp3" },
                     { darija_ar: "ق", transcription: "Qaf", audio: "qaf.mp3" },
-                    { darija_ar: "ك", transcription: "Kaf", audio: "k.mp3" },
-                    { darija_ar: "ل", transcription: "Lam", audio: "l.mp3" },
-                    { darija_ar: "م", transcription: "Mim", audio: "m.mp3" },
-                    { darija_ar: "ن", transcription: "Nun", audio: "n.mp3" },
-                    { darija_ar: "ه", transcription: "Ha", audio: "haa.mp3" },
-                    { darija_ar: "و", transcription: "Waw", audio: "w.mp3" },
-                    { darija_ar: "ي", transcription: "Ya", audio: "y.mp3" },
+                    { darija_ar: "ك", transcription: "Kaf", audio: "kaf.mp3" },
+                    { darija_ar: "ل", transcription: "Lam", audio: "lam.mp3" },
+                    { darija_ar: "م", transcription: "Mim", audio: "mim.mp3" },
+                    { darija_ar: "ن", transcription: "Nun", audio: "nun.mp3" },
+                    { darija_ar: "ه", transcription: "Ha", audio: "ha_final.mp3" }, // Renamed to avoid conflict with 'ح'
+                    { darija_ar: "و", transcription: "Waw", audio: "waw.mp3" },
+                    { darija_ar: "ي", transcription: "Ya", audio: "ya.mp3" }
                 ],
                 numbers: [
                     { english: "zero", darija: "sifr", darija_ar: "صفر", num: "0" },
@@ -1214,8 +1214,8 @@
 
             // Function to play audio for alphabet letters
             function playAudio(audioFileName) {
-                // Modified line: audio files are now expected in 'alphabet/' subfolder
-                const audio = new Audio(`alphabet/${audioFileName}`);
+                // Modified line: audio files are now expected in 'Alphabet/' subfolder
+                const audio = new Audio(`Alphabet/${audioFileName}`);
                 audio.play().catch(e => console.error("Error playing audio:", e));
             }
 
